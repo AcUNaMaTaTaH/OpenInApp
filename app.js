@@ -1,6 +1,6 @@
 const TRACKING_PARAMS = new Set(['fbclid', 'gclid', 'si', 'feature', 's', 't']);
 const FALLBACK_DELAY_MS = 3500;
-const AUTO_OPEN_DELAY_MS = 700;
+const AUTO_OPEN_DELAY_MS = 1200;
 const REPEAT_COOLDOWN_MS = 30 * 60 * 1000;
 const TWEET_ID_PATTERN = /^\d{6,25}$/;
 
@@ -56,14 +56,14 @@ export function parseSocialUrl(input) {
   try {
     url = new URL(String(input).trim());
   } catch {
-    throw new Error('Saisissez une URL complète et valide.');
+    throw new Error('Enter a complete and valid URL.');
   }
-  if (url.protocol !== 'https:') throw new Error('Le lien doit obligatoirement utiliser HTTPS.');
-  if (url.username || url.password || url.port) throw new Error('Cette URL contient des éléments non autorisés.');
+  if (url.protocol !== 'https:') throw new Error('The link must use HTTPS.');
+  if (url.username || url.password || url.port) throw new Error('This URL contains unsupported elements.');
 
   const hostname = url.hostname.toLowerCase();
   const entry = Object.entries(NETWORKS).find(([, network]) => network.hosts.includes(hostname));
-  if (!entry) throw new Error('Ce réseau n’est pas encore pris en charge.');
+  if (!entry) throw new Error('This social network is not supported yet.');
   const [platform, network] = entry;
 
   url.hostname = canonicalHost(platform, hostname);
@@ -77,12 +77,12 @@ export function parseSocialUrl(input) {
 
 export function validateSharedTarget(platform, target) {
   const parsed = parseSocialUrl(target);
-  if (parsed.platform !== platform || !NETWORKS[platform]) throw new Error('La destination ne correspond pas au réseau annoncé.');
+  if (parsed.platform !== platform || !NETWORKS[platform]) throw new Error('The destination does not match this social network.');
   return parsed;
 }
 
 export function buildShareUrl(parsed, locationLike = window.location) {
-  if (!parsed || !NETWORKS[parsed.platform]) throw new TypeError('Réseau invalide.');
+  if (!parsed || !NETWORKS[parsed.platform]) throw new TypeError('Invalid social network.');
   const validated = validateSharedTarget(parsed.platform, parsed.url);
   const current = new URL(locationLike.href);
   const directory = new URL('./', current);
@@ -132,9 +132,9 @@ export function buildAndroidDestination(platform, target) {
 // API historique conservée pour les anciens tests et liens X.
 export function extractTweetId(input) {
   const parsed = parseSocialUrl(input);
-  if (parsed.platform !== 'x') throw new Error('Ce lien n’est pas un lien X ou Twitter.');
+  if (parsed.platform !== 'x') throw new Error('This is not an X or Twitter link.');
   const id = tweetIdFromUrl(new URL(parsed.url));
-  if (!isValidTweetId(id)) throw new Error('Ce lien ne contient pas d’identifiant de tweet valide.');
+  if (!isValidTweetId(id)) throw new Error('This link does not contain a valid post ID.');
   return id;
 }
 
@@ -188,12 +188,12 @@ function canonicalHost(platform, hostname) {
 }
 
 function validateNetworkPath(platform, url) {
-  if (!url.pathname || url.pathname === '/') throw new Error(`Ce lien ${NETWORKS[platform].name} ne désigne aucun contenu ou profil.`);
+  if (!url.pathname || url.pathname === '/') throw new Error(`This ${NETWORKS[platform].name} link does not point to content or a profile.`);
   if (platform === 'x' && /\/status\//i.test(url.pathname) && !tweetIdFromUrl(url)) {
-    throw new Error('Ce lien ne contient pas d’identifiant de publication X valide.');
+    throw new Error('This link does not contain a valid X post ID.');
   }
   if (platform === 'youtube' && url.pathname === '/watch' && !youtubeVideoId(url)) {
-    throw new Error('Ce lien YouTube ne contient pas d’identifiant de vidéo valide.');
+    throw new Error('This YouTube link does not contain a valid video ID.');
   }
 }
 
@@ -213,7 +213,7 @@ function youtubeVideoId(url) {
 }
 
 function assertTweetId(id) {
-  if (!isValidTweetId(id)) throw new TypeError('Identifiant de tweet invalide.');
+  if (!isValidTweetId(id)) throw new TypeError('Invalid post ID.');
 }
 
 function navigate(url, replace = false) {
@@ -239,12 +239,12 @@ function setupGenerator() {
     try {
       const parsed = parseSocialUrl(input.value);
       shareOutput.value = buildShareUrl(parsed);
-      detected.textContent = `Réseau détecté : ${parsed.name}`;
+      detected.textContent = `Detected network: ${parsed.name}`;
       result.hidden = false;
       shareOutput.focus();
       shareOutput.select();
     } catch (error) {
-      formMessage.textContent = error instanceof Error ? error.message : 'Le lien est invalide.';
+      formMessage.textContent = error instanceof Error ? error.message : 'The link is invalid.';
       input.focus();
     }
   });
@@ -252,11 +252,11 @@ function setupGenerator() {
   document.querySelector('#copy-button').addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(shareOutput.value);
-      copyMessage.textContent = 'Lien copié ! Vous pouvez maintenant le partager.';
+      copyMessage.textContent = 'Link copied! You can now share it.';
     } catch {
       shareOutput.focus();
       shareOutput.select();
-      copyMessage.textContent = 'Sélectionnez le lien puis copiez-le manuellement.';
+      copyMessage.textContent = 'Select the link and copy it manually.';
     }
   });
 }
@@ -274,7 +274,7 @@ function setupOpener(platform) {
   const target = new URL(window.location.href).searchParams.get('target');
   const message = document.querySelector('#opener-message');
   if (!network || !target) {
-    message.textContent = 'Ce lien de partage est incomplet ou invalide.';
+    message.textContent = 'This share link is incomplete or invalid.';
     document.querySelector('#app-link').hidden = true;
     document.querySelector('#web-link').hidden = true;
     return;
@@ -284,7 +284,7 @@ function setupOpener(platform) {
   try {
     webUrl = buildWebDestination(platform, target);
   } catch (error) {
-    message.textContent = error instanceof Error ? error.message : 'Ce lien est invalide.';
+    message.textContent = error instanceof Error ? error.message : 'This link is invalid.';
     document.querySelector('#app-link').hidden = true;
     document.querySelector('#web-link').hidden = true;
     return;
@@ -297,9 +297,9 @@ function setupOpener(platform) {
   const appLink = document.querySelector('#app-link');
   const webLink = document.querySelector('#web-link');
   document.querySelector('#network-name').textContent = network.name;
-  document.querySelector('#opener-title').textContent = `Ouverture dans ${network.name}…`;
-  appLink.textContent = `Ouvrir dans l’application ${network.name}`;
-  webLink.textContent = `Continuer sur le site ${network.name}`;
+  document.querySelector('#opener-title').textContent = `Opening ${network.name}…`;
+  appLink.textContent = `Open in the ${network.name} app`;
+  webLink.textContent = `Continue on the ${network.name} website`;
   appLink.href = appUrl;
   webLink.href = webUrl;
 
@@ -310,13 +310,30 @@ function setupOpener(platform) {
 
   const fallback = createFallbackController({ onFallback: () => navigate(webUrl, true) });
   appLink.addEventListener('click', () => fallback.start());
+  const backButton = document.querySelector('#back-button');
+  backButton.addEventListener('click', () => {
+    fallback.cancel();
+    if (window.history.length > 1) window.history.back();
+    else navigate(new URL('./', window.location.href).href, true);
+  });
+  let leftForApp = false;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) leftForApp = true;
+    else if (leftForApp) {
+      fallback.cancel();
+      message.textContent = `You’re back from ${network.name}. Use the button to open it again, or go back.`;
+    }
+  });
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) message.textContent = `You’re back from ${network.name}. Use the button to open it again, or go back.`;
+  });
   const autoKey = `openinapp:${platform}:${webUrl}`;
   if (shouldAutoOpen(window.sessionStorage, autoKey)) {
-    message.textContent = 'Tentative d’ouverture automatique…';
+    message.textContent = `Ready. Opening ${network.name} in a moment…`;
     fallback.start();
     window.setTimeout(() => navigate(appUrl), AUTO_OPEN_DELAY_MS);
   } else {
-    message.textContent = 'Ce lien a déjà été ouvert récemment. Utilisez le bouton pour l’ouvrir à nouveau.';
+    message.textContent = 'This link was opened recently. Use the button to open it again.';
   }
 }
 

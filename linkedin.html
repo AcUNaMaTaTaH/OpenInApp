@@ -1,19 +1,19 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#08090a">
-  <meta name="description" content="Ouvrir un contenu LinkedIn dans l’application avec OpenInApp.">
-  <meta property="og:title" content="LinkedIn — Ouvrir dans l’application">
-  <meta property="og:description" content="Ouvrir un contenu LinkedIn dans l’application. Touchez le lien pour continuer.">
+  <meta name="description" content="Open LinkedIn content in the app with OpenInApp.">
+  <meta property="og:title" content="LinkedIn — Open in the app">
+  <meta property="og:description" content="Open LinkedIn content in the app. Tap the link to continue.">
   <meta property="og:image" content="https://acunamatatah.github.io/OpenInApp/preview.png">
   <meta property="og:image:width" content="1536">
   <meta property="og:image:height" content="1024">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
-  <title>LinkedIn — Ouverture avec OpenInApp</title>
+  <title>LinkedIn — Opening with OpenInApp</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body data-platform="linkedin">
@@ -21,13 +21,14 @@
     <section class="card opener" aria-labelledby="opener-title">
       <div class="brand pulse" aria-hidden="true">↗</div>
       <p class="eyebrow">OpenInApp · <span id="network-name">LinkedIn</span></p>
-      <h1 id="opener-title">Ouverture dans LinkedIn…</h1>
-      <p id="opener-message" class="message" role="status" aria-live="polite">Préparation du lien…</p>
-      <p class="intro">Si rien ne se passe, utilisez le bouton ci-dessous. Certains mini-navigateurs exigent une action manuelle.</p>
-      <a id="app-link" class="button primary" href="#">Ouvrir dans l’application LinkedIn</a>
-      <a id="web-link" class="text-link" href="#">Continuer sur le site LinkedIn</a>
-      <a class="button ghost" href="./">Revenir au générateur</a>
-      <p class="fine-print">Aucune redirection automatique vers une boutique d’applications.</p>
+      <h1 id="opener-title">Opening LinkedIn…</h1>
+      <p id="opener-message" class="message" role="status" aria-live="polite">Preparing your link…</p>
+      <p class="intro">OpenInApp will try to launch the app. If nothing happens, use the manual button below.</p>
+      <a id="app-link" class="button primary" href="#">Open in the LinkedIn app</a>
+      <a id="web-link" class="text-link" href="#">Continue on the LinkedIn website</a>
+      <button id="back-button" class="ghost" type="button">Go back</button>
+      <a class="text-link" href="./">Create another link</a>
+      <p class="fine-print">You will never be redirected automatically to an app store.</p>
     </section>
   </main>
   <script type="module" src="./app.js"></script>
