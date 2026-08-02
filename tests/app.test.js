@@ -34,19 +34,19 @@ test('accepte les anciens domaines Twitter et extrait le tweet', () => {
 
 test('refuse HTTP, les identifiants et les faux domaines', () => {
   assert.throws(() => parseSocialUrl('http://x.com/user/status/2083774295998595510'), /HTTPS/);
-  assert.throws(() => parseSocialUrl('https://name:password@x.com/user'), /non autorisés/);
-  assert.throws(() => parseSocialUrl('https://x.com.example.com/user/status/2083774295998595510'), /pas encore/);
-  assert.throws(() => parseSocialUrl('https://evilinstagram.com/reel/ABC'), /pas encore/);
+  assert.throws(() => parseSocialUrl('https://name:password@x.com/user'), /unsupported/);
+  assert.throws(() => parseSocialUrl('https://x.com.example.com/user/status/2083774295998595510'), /not supported/);
+  assert.throws(() => parseSocialUrl('https://evilinstagram.com/reel/ABC'), /not supported/);
 });
 
 test('refuse les contenus incomplets ou les identifiants X invalides', () => {
-  assert.throws(() => parseSocialUrl('https://www.instagram.com/'), /aucun contenu/);
-  assert.throws(() => parseSocialUrl('https://x.com/user/status/not-a-number'), /identifiant/);
-  assert.throws(() => parseSocialUrl('https://www.youtube.com/watch'), /identifiant/);
+  assert.throws(() => parseSocialUrl('https://www.instagram.com/'), /does not point/);
+  assert.throws(() => parseSocialUrl('https://x.com/user/status/not-a-number'), /valid X post ID/);
+  assert.throws(() => parseSocialUrl('https://www.youtube.com/watch'), /valid video ID/);
 });
 
 test('empêche de déguiser une plateforme dans une page différente', () => {
-  assert.throws(() => validateSharedTarget('instagram', `https://x.com/user/status/${TWEET_ID}`), /ne correspond pas/);
+  assert.throws(() => validateSharedTarget('instagram', `https://x.com/user/status/${TWEET_ID}`), /does not match/);
 });
 
 test('génère une page partageable relative au sous-dossier GitHub Pages', () => {

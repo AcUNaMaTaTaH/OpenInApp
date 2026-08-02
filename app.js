@@ -118,7 +118,7 @@ export function buildIOSDestination(platform, target) {
     const username = parsed.pathname.match(/^\/add\/([A-Za-z0-9._-]+)\/?$/)?.[1];
     if (username) return `snapchat://add/${encodeURIComponent(username)}`;
   }
-  // Les liens HTTPS universels sont plus stables que les schémas privés non documentés.
+  // Universal HTTPS links are more stable than undocumented private schemes.
   return url;
 }
 
@@ -129,7 +129,7 @@ export function buildAndroidDestination(platform, target) {
   return `intent://${withoutScheme}#Intent;scheme=https;package=${network.androidPackage};S.browser_fallback_url=${encodeURIComponent(url)};end`;
 }
 
-// API historique conservée pour les anciens tests et liens X.
+// Legacy API kept for existing tests and previously shared X links.
 export function extractTweetId(input) {
   const parsed = parseSocialUrl(input);
   if (parsed.platform !== 'x') throw new Error('This is not an X or Twitter link.');
@@ -309,16 +309,21 @@ function setupOpener(platform) {
   }
 
   const fallback = createFallbackController({ onFallback: () => navigate(webUrl, true) });
+  let autoTimerId;
   appLink.addEventListener('click', () => fallback.start());
   const backButton = document.querySelector('#back-button');
   backButton.addEventListener('click', () => {
     fallback.cancel();
+    if (autoTimerId !== undefined) window.clearTimeout(autoTimerId);
     if (window.history.length > 1) window.history.back();
     else navigate(new URL('./', window.location.href).href, true);
   });
   let leftForApp = false;
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) leftForApp = true;
+    if (document.hidden) {
+      leftForApp = true;
+      if (autoTimerId !== undefined) window.clearTimeout(autoTimerId);
+    }
     else if (leftForApp) {
       fallback.cancel();
       message.textContent = `You’re back from ${network.name}. Use the button to open it again, or go back.`;
@@ -331,7 +336,10 @@ function setupOpener(platform) {
   if (shouldAutoOpen(window.sessionStorage, autoKey)) {
     message.textContent = `Ready. Opening ${network.name} in a moment…`;
     fallback.start();
-    window.setTimeout(() => navigate(appUrl), AUTO_OPEN_DELAY_MS);
+    autoTimerId = window.setTimeout(() => {
+      autoTimerId = undefined;
+      navigate(appUrl);
+    }, AUTO_OPEN_DELAY_MS);
   } else {
     message.textContent = 'This link was opened recently. Use the button to open it again.';
   }
