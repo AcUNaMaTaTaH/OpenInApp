@@ -93,6 +93,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .message { min-height: 1.4em; margin: 12px 0 0; color: var(--danger); font-size: .9rem; }
 .message.success { color: var(--success); }
 .result { margin-top: 18px; padding-top: 22px; border-top: 1px solid var(--card-edge); }
+.result-actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
 .opener { text-align: center; }
 .opener .brand { margin-inline: auto; }
 .opener .button, .opener .ghost, .opener .text-link { width: 100%; margin-top: 12px; }

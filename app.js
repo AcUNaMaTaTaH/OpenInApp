@@ -1,6 +1,7 @@
 const TRACKING_PARAMS = new Set(['fbclid', 'gclid', 'si', 'feature', 's', 't']);
 const FALLBACK_DELAY_MS = 3500;
-const AUTO_OPEN_DELAY_MS = 80;
+const AUTO_OPEN_DELAY_MS = 1200;
+const REPEAT_COOLDOWN_MS = 30 * 60 * 1000;
 const TWEET_ID_PATTERN = /^\d{6,25}$/;
 
 export const NETWORKS = Object.freeze({
@@ -90,15 +91,6 @@ export function buildShareUrl(parsed, locationLike = window.location) {
   return share.href;
 }
 
-export function buildOpenerUrl(platform, target, locationLike = window.location, attempt) {
-  const validated = validateSharedTarget(platform, target);
-  const opener = new URL('open.html', new URL('./', new URL(locationLike.href)));
-  opener.searchParams.set('platform', validated.platform);
-  opener.searchParams.set('target', validated.url);
-  if (attempt) opener.searchParams.set('attempt', String(attempt).slice(0, 80));
-  return opener.href;
-}
-
 export function buildWebDestination(platform, target) {
   return validateSharedTarget(platform, target).url;
 }
@@ -171,6 +163,18 @@ export function createFallbackController({ onFallback, delay = FALLBACK_DELAY_MS
   doc.addEventListener('visibilitychange', handleVisibility);
   win.addEventListener('pagehide', cancel);
   return { start, cancel };
+}
+
+export function shouldAutoOpen(storage, key, now = Date.now()) {
+  try {
+    const stored = storage.getItem(key);
+    const previous = stored === null ? Number.NaN : Number(stored);
+    if (Number.isFinite(previous) && now - previous < REPEAT_COOLDOWN_MS) return false;
+    storage.setItem(key, String(now));
+  } catch {
+    // Storage may be unavailable in some in-app browsers.
+  }
+  return true;
 }
 
 function canonicalHost(platform, hostname) {
@@ -255,6 +259,15 @@ function setupGenerator() {
       copyMessage.textContent = 'Select the link and copy it manually.';
     }
   });
+  document.querySelector('#clear-button').addEventListener('click', () => {
+    input.value = '';
+    shareOutput.value = '';
+    formMessage.textContent = '';
+    copyMessage.textContent = '';
+    detected.textContent = '';
+    result.hidden = true;
+    input.focus();
+  });
 }
 
 function setupLegacyXLink() {
@@ -263,18 +276,6 @@ function setupLegacyXLink() {
   const target = buildWebUrl(id);
   navigate(buildShareUrl({ platform: 'x', url: target }), true);
   return true;
-}
-
-function setupBridge(platform) {
-  const target = new URL(window.location.href).searchParams.get('target');
-  const message = document.querySelector('#bridge-message');
-  try {
-    const attempt = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-    navigate(buildOpenerUrl(platform, target, window.location, attempt), true);
-  } catch (error) {
-    message.textContent = error instanceof Error ? error.message : 'This share link is invalid.';
-    document.querySelector('#bridge-back').hidden = false;
-  }
 }
 
 function setupOpener(platform) {
@@ -340,20 +341,35 @@ function setupOpener(platform) {
   window.addEventListener('pageshow', (event) => {
     if (event.persisted) message.textContent = `You’re back from ${network.name}. Use the button to open it again, or go back.`;
   });
-  message.textContent = `Opening ${network.name}…`;
-  fallback.start();
-  autoTimerId = window.setTimeout(() => {
-    autoTimerId = undefined;
-    navigate(appUrl);
-  }, AUTO_OPEN_DELAY_MS);
+  const autoKey = `openinapp:${platform}:${webUrl}`;
+  if (shouldAutoOpen(window.sessionStorage, autoKey)) {
+    message.textContent = `Ready. Opening ${network.name} in a moment…`;
+    fallback.start();
+    autoTimerId = window.setTimeout(() => {
+      autoTimerId = undefined;
+      navigate(appUrl);
+    }, AUTO_OPEN_DELAY_MS);
+  } else {
+    message.textContent = 'This link was opened recently. Use the button to open it again.';
+  }
+}
+
+function setupShortcutOpener() {
+  const target = new URL(window.location.href).searchParams.get('target');
+  try {
+    const parsed = parseSocialUrl(target);
+    setupOpener(parsed.platform);
+  } catch (error) {
+    const message = document.querySelector('#opener-message');
+    message.textContent = error instanceof Error ? error.message : 'This shortcut link is invalid.';
+    document.querySelector('#app-link').hidden = true;
+    document.querySelector('#web-link').hidden = true;
+  }
 }
 
 if (typeof document !== 'undefined') {
-  const bridgePlatform = document.body.dataset.bridge;
-  if (bridgePlatform) setupBridge(bridgePlatform);
-  else if (document.body.dataset.opener !== undefined) {
-    const platform = new URL(window.location.href).searchParams.get('platform');
-    setupOpener(platform);
-  }
+  const platform = document.body.dataset.platform;
+  if (platform) setupOpener(platform);
+  else if (document.body.dataset.shortcut !== undefined) setupShortcutOpener();
   else if (!setupLegacyXLink()) setupGenerator();
 }

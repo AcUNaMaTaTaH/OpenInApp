@@ -25,3 +25,7 @@ If automatic opening is blocked, the transition page provides a manual button, a
 - Snapchat
 
 App-opening behavior may vary depending on the phone, app and in-app browser restrictions. Only supported HTTPS links are accepted.
+
+## iPhone Shortcut
+
+The universal `shortcut.html?target=...` route can be used by an Apple Shortcut to create an OpenInApp link directly from the iOS Share Sheet and copy it to the clipboard.
