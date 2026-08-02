@@ -66,6 +66,8 @@ body {
 
 h1 { margin: 0; font-size: clamp(2rem, 7vw, 3.2rem); line-height: 1.02; letter-spacing: -.045em; }
 .intro { margin: 18px 0 28px; color: var(--muted); line-height: 1.65; }
+.supported { margin: -12px 0 28px; color: #7f8993; font-size: .82rem; line-height: 1.6; }
+.detected { margin: 0; color: var(--success); font-size: .88rem; font-weight: 700; }
 form, .result { display: grid; gap: 12px; }
 label { font-size: .9rem; font-weight: 700; }
 
@@ -97,6 +99,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .opener .button, .opener .ghost, .opener .text-link { width: 100%; margin-top: 12px; }
 .text-link { display: inline-block; padding: 14px; color: var(--text); font-weight: 700; text-underline-offset: 4px; }
 .fine-print { margin: 22px 0 0; color: var(--muted); font-size: .78rem; }
+.opener .message { color: var(--muted); }
 [hidden] { display: none !important; }
 
 @media (prefers-reduced-motion: no-preference) {

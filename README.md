@@ -1,26 +1,28 @@
 # OpenInApp
 
-OpenInApp transforme un lien de tweet X/Twitter en un lien partageable qui tente d’ouvrir le tweet dans l’application X. Le projet est entièrement statique, sans suivi, sans dépendance et compatible avec GitHub Pages.
+OpenInApp transforme un lien de réseau social en lien partageable qui tente d’ouvrir le contenu dans l’application correspondante. Le projet est entièrement statique, sans suivi, sans dépendance et compatible avec GitHub Pages.
 
 ## Fonctionnement
 
-Le générateur accepte uniquement les URL HTTPS des domaines `x.com`, `www.x.com`, `twitter.com`, `www.twitter.com` et `mobile.twitter.com`. Il extrait l’identifiant numérique et génère une URL de la forme :
+Le générateur accepte uniquement les URL HTTPS de X/Twitter, Instagram, TikTok, YouTube, Facebook, Threads, Reddit, LinkedIn, Pinterest et Snapchat. Il identifie le réseau, normalise le lien et génère une page de partage propre à la plateforme :
 
 ```text
-https://utilisateur.github.io/open-in-app/?x=2083774295998595510
+https://utilisateur.github.io/OpenInApp/x.html?target=...
 ```
 
-À l’ouverture, la page reconstruit elle-même toutes les destinations depuis cet identifiant validé :
+À l’ouverture, la page revalide le domaine et reconstruit toutes les destinations. Un lien ne peut pas être transformé en redirecteur vers un autre domaine.
 
-- iPhone/iPad : `twitter://status?id=IDENTIFIANT` ;
-- Android : intent ciblant le paquet `com.twitter.android` ;
-- ordinateur ou solution de secours : `https://x.com/i/status/IDENTIFIANT`.
+- iPhone/iPad : deep link public lorsqu’il est stable (notamment X, YouTube, Reddit, Pinterest et Snapchat), sinon lien universel HTTPS ;
+- Android : intent ciblant explicitement l’application du réseau avec fallback HTTPS ;
+- ordinateur : ouverture directe du contenu sur le site du réseau.
 
-Sur mobile, une tentative automatique est suivie d’un fallback web après environ 2,2 secondes. Le fallback est annulé si la page devient cachée. Un bouton manuel reste toujours visible.
+Sur mobile, une tentative automatique retardée est suivie d’un fallback web. Le fallback est annulé si la page devient cachée. Pour éviter un blocage observé dans certains mini-navigateurs Instagram, le même lien n’est pas rouvert automatiquement une deuxième fois pendant 30 minutes dans la même session : le bouton manuel reste disponible. Les anciens liens `?x=IDENTIFIANT` restent compatibles.
+
+Chaque réseau possède une page avec des métadonnées Open Graph statiques et un visuel OpenInApp. GitHub Pages ne peut pas récupérer dynamiquement le texte et l’image de la publication cible : cela nécessiterait un serveur et parfois les API officielles des réseaux.
 
 ## Limites importantes
 
-Instagram et iOS contrôlent leurs mini-navigateurs. Selon leur version et les réglages de l’utilisateur, ils peuvent bloquer un deep link lancé automatiquement. OpenInApp ne contourne pas ces protections : le gros bouton manuel offre la solution la plus fiable lorsqu’une interaction est exigée. L’application X doit être installée. Le site n’envoie jamais automatiquement vers l’App Store.
+Instagram et iOS contrôlent leurs mini-navigateurs. Selon leur version, le réseau et les réglages de l’utilisateur, ils peuvent bloquer un deep link lancé automatiquement. OpenInApp ne contourne pas ces protections : le gros bouton manuel offre la solution la plus fiable lorsqu’une interaction est exigée. L’application correspondante doit être installée. Le site n’envoie jamais automatiquement vers l’App Store ou Google Play.
 
 ## Tester localement
 
@@ -34,20 +36,20 @@ Pour afficher le site, servez ce dossier avec le serveur statique de votre choix
 
 ## Créer le dépôt et publier
 
-1. Sur GitHub, créez un dépôt public vide nommé `open-in-app` (sans README ni `.gitignore`).
+1. Sur GitHub, créez un dépôt public vide, par exemple `OpenInApp` (sans README ni `.gitignore`).
 2. Dans ce dossier, exécutez en remplaçant `VOTRE_COMPTE` :
 
 ```bash
 git add .
 git commit -m "Créer OpenInApp"
-git remote add origin https://github.com/VOTRE_COMPTE/open-in-app.git
+git remote add origin https://github.com/VOTRE_COMPTE/OpenInApp.git
 git push -u origin main
 ```
 
 3. Sur GitHub, ouvrez **Settings → Pages**.
 4. Dans **Build and deployment → Source**, choisissez **GitHub Actions**.
 5. Ouvrez l’onglet **Actions** et attendez la fin du workflow « Déployer sur GitHub Pages ».
-6. Le site sera disponible à `https://VOTRE_COMPTE.github.io/open-in-app/`.
+6. Le site sera disponible à `https://VOTRE_COMPTE.github.io/OpenInApp/`.
 
 Le workflow teste le JavaScript avant chaque déploiement sur la branche `main`.
 
@@ -57,13 +59,17 @@ Le workflow teste le JavaScript avant chaque déploiement sur la branche `main`.
 2. Copiez le lien généré.
 3. Envoyez-le dans un vrai DM Instagram à un compte de test ou à un proche.
 4. Ouvrez le lien depuis l’application Instagram sur iPhone puis Android si possible.
-5. Vérifiez la tentative automatique, le bouton « Ouvrir dans l’application X » et le lien web secondaire.
+5. Vérifiez la tentative automatique, le bouton d’ouverture manuelle et le lien web secondaire.
+6. Revenez dans Instagram et rouvrez immédiatement le même lien : la seconde ouverture doit attendre une pression sur le bouton.
 
 Autres formats acceptés :
 
 ```text
 https://twitter.com/compte/status/2083774295998595510
 https://mobile.twitter.com/compte/status/2083774295998595510?s=46
+https://www.instagram.com/reel/ABC123/
+https://www.tiktok.com/@compte/video/1234567890123456789
+https://youtu.be/dQw4w9WgXcQ
 ```
 
 ## Renommer le dépôt
@@ -82,4 +88,4 @@ Dans **Settings → Pages → Custom domain**, saisissez votre domaine. Configur
 
 ## Sécurité
 
-Les protocoles non HTTPS, hôtes non autorisés et identifiants non numériques sont refusés. OpenInApp ne redirige jamais vers une URL fournie par l’utilisateur : les destinations sont reconstruites à partir de l’identifiant validé. Une Content Security Policy restrictive limite les ressources chargeables.
+Les protocoles non HTTPS, hôtes non autorisés, identifiants de publication invalides et URL contenant des identifiants de connexion sont refusés. Chaque destination reçue depuis un lien partagé est revalidée et normalisée avant navigation : OpenInApp ne peut pas devenir un redirecteur ouvert. Une Content Security Policy restrictive limite les ressources chargeables.

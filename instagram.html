@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#08090a">
+  <meta name="description" content="Ouvrir un contenu Instagram dans l’application avec OpenInApp.">
+  <meta property="og:title" content="Instagram — Ouvrir dans l’application">
+  <meta property="og:description" content="Ouvrir un contenu Instagram dans l’application. Touchez le lien pour continuer.">
+  <meta property="og:image" content="https://acunamatatah.github.io/OpenInApp/preview.png">
+  <meta property="og:image:width" content="1536">
+  <meta property="og:image:height" content="1024">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <title>Instagram — Ouverture avec OpenInApp</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body data-platform="instagram">
+  <main class="shell">
+    <section class="card opener" aria-labelledby="opener-title">
+      <div class="brand pulse" aria-hidden="true">↗</div>
+      <p class="eyebrow">OpenInApp · <span id="network-name">Instagram</span></p>
+      <h1 id="opener-title">Ouverture dans Instagram…</h1>
+      <p id="opener-message" class="message" role="status" aria-live="polite">Préparation du lien…</p>
+      <p class="intro">Si rien ne se passe, utilisez le bouton ci-dessous. Certains mini-navigateurs exigent une action manuelle.</p>
+      <a id="app-link" class="button primary" href="#">Ouvrir dans l’application Instagram</a>
+      <a id="web-link" class="text-link" href="#">Continuer sur le site Instagram</a>
+      <a class="button ghost" href="./">Revenir au générateur</a>
+      <p class="fine-print">Aucune redirection automatique vers une boutique d’applications.</p>
+    </section>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
