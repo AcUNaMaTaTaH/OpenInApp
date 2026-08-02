@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  NETWORKS, parseSocialUrl, validateSharedTarget, buildShareUrl,
+  NETWORKS, parseSocialUrl, validateSharedTarget, buildShareUrl, buildOpenerUrl,
   buildWebDestination, buildIOSDestination, buildAndroidDestination,
-  extractTweetId, isValidTweetId, detectPlatform, shouldAutoOpen
+  extractTweetId, isValidTweetId, detectPlatform
 } from '../app.js';
 
 const TWEET_ID = '2083774295998595510';
@@ -57,6 +57,15 @@ test('génère une page partageable relative au sous-dossier GitHub Pages', () =
   );
 });
 
+test('sépare l’URL partagée de l’URL utilisée par le mini-navigateur', () => {
+  const target = `https://x.com/user/status/${TWEET_ID}`;
+  const shared = buildShareUrl({ platform: 'x', url: target }, { href: 'https://user.github.io/OpenInApp/' });
+  const opener = buildOpenerUrl('x', target, { href: shared }, 'try-123');
+  assert.equal(shared, `https://user.github.io/OpenInApp/x.html?target=https%3A%2F%2Fx.com%2Fuser%2Fstatus%2F${TWEET_ID}`);
+  assert.equal(opener, `https://user.github.io/OpenInApp/open.html?platform=x&target=https%3A%2F%2Fx.com%2Fuser%2Fstatus%2F${TWEET_ID}&attempt=try-123`);
+  assert.notEqual(new URL(shared).pathname, new URL(opener).pathname);
+});
+
 test('reconstruit toujours la destination web validée', () => {
   assert.equal(buildWebDestination('x', `https://twitter.com/user/status/${TWEET_ID}?s=46`), `https://x.com/user/status/${TWEET_ID}`);
 });
@@ -81,13 +90,4 @@ test('détecte iOS, iPadOS, Android et ordinateur', () => {
   assert.equal(detectPlatform('Mozilla/5.0 (Macintosh)', 5), 'ios');
   assert.equal(detectPlatform('Mozilla/5.0 (Linux; Android 15)'), 'android');
   assert.equal(detectPlatform('Mozilla/5.0 (Windows NT 10.0)'), 'desktop');
-});
-
-test('bloque une seconde ouverture automatique pendant le délai de sécurité', () => {
-  const values = new Map();
-  const storage = { getItem: (key) => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
-  assert.equal(shouldAutoOpen(storage, 'same-link', 1_000), true);
-  assert.equal(shouldAutoOpen(storage, 'same-link', 2_000), false);
-  assert.equal(shouldAutoOpen(storage, 'other-link', 2_000), true);
-  assert.equal(shouldAutoOpen(storage, 'same-link', 1_802_000), true);
 });
