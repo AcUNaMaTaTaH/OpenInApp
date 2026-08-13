@@ -1,6 +1,6 @@
 const TRACKING_PARAMS = new Set(['fbclid', 'gclid', 'si', 'feature', 's', 't']);
 const FALLBACK_DELAY_MS = 3500;
-const AUTO_OPEN_DELAY_MS = 1200;
+const AUTO_OPEN_DELAY_MS = 500;
 const REPEAT_COOLDOWN_MS = 30 * 60 * 1000;
 const TWEET_ID_PATTERN = /^\d{6,25}$/;
 
